@@ -41,11 +41,11 @@ func main() {
 		return
 	}
 
-	fmt.Println("NAYDEN NAHUY")
+	fmt.Println("Найден!")
 	if c {
-		fmt.Println("SUDIM")
+		fmt.Println("Судим")
 	} else {
-		fmt.Println("NE SUDIM")
+		fmt.Println("Не судим")
 	}
 
 }

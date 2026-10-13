@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-//func main() {
+func main() {
 
 	for i := 1; i <= 50; i += rand.Intn(20) {
 		fmt.Println("Новая итерация! i:", i)

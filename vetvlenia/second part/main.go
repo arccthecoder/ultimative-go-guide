@@ -2,15 +2,15 @@ package main
 
 import "fmt"
 
-//func main() {
+func main() {
 	score := 10
 
 	// score < 6 == false
 	// score > 16 == false
 	if score < 6 || score > 16 {
-		fmt.Println("петушара")
+		fmt.Println("плохо")
 	} else {
-		fmt.Println("ты нге петушара")
+		fmt.Println("четко")
 	}
 
 	// score > 8 == true
@@ -18,12 +18,12 @@ import "fmt"
 	if score > 8 && score < 15 {
 		fmt.Println("яблочко")
 	} else {
-		fmt.Println("нихуя не яблочко")
+		fmt.Println("не попал в яблочко")
 	}
 
-	subscribed := false
+	star := false
 
-	if !subscribed {
-		fmt.Println("подпишись дурак")
+	if !star {
+		fmt.Println("поставь стар")
 	}
 }
