@@ -7,13 +7,20 @@ import (
 	"time"
 )
 
-func Postman(ctx context.Context, wg *sync.WaitGroup, transferPoint chan<- string, n int, mail string) {
+func Postman(
+	ctx context.Context,
+	wg *sync.WaitGroup,
+	transferPoint chan<- string,
+	n int,
+	mail string,
+) {
 	defer wg.Done()
 
 	for {
 		select {
 		case <-ctx.Done():
 			fmt.Println("Я почтальон номер:", n, "Мой рабочий день окончен!")
+			return
 		default:
 			fmt.Println("Я почтальон номер:", n, "Взял письмо")
 			time.Sleep(1 * time.Second)

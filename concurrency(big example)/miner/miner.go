@@ -15,6 +15,7 @@ func Miner(
 	power int,
 ) {
 	defer wg.Done()
+
 	for {
 		select {
 		case <-ctx.Done():
