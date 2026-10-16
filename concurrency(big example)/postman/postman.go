@@ -16,20 +16,41 @@ func postman(
 ) {
 	defer wg.Done()
 
+	// зависит от вашего желания способа работы. подробнее ниже
 	for {
+		fmt.Println("Я почтальон номер:", n, "Взял письмо")
+
+		// сразу завершают рабочий день после отмены контекста
 		select {
 		case <-ctx.Done():
 			fmt.Println("Я почтальон номер:", n, "Мой рабочий день окончен!")
 			return
-		default:
-			fmt.Println("Я почтальон номер:", n, "Взял письмо")
-			time.Sleep(1 * time.Second)
+		case <-time.After(1 * time.Second):
 			fmt.Println("Я почтальон номер:", n, "Донес письмо до почты:", mail)
+		}
 
-			transferPoint <- mail
-
+		select {
+		case <-ctx.Done():
+			fmt.Println("Я почтальон номер:", n, "Мой рабочий день окончен!")
+			return
+		case transferPoint <- mail:
 			fmt.Println("Я почтальон номер:", n, "Передал письмо:", mail)
 		}
+
+		// доделывают работу и завершают после отмены контекста
+		// select {
+		// case <-ctx.Done():
+		// 	fmt.Println("Я почтальон номер:", n, "Мой рабочий день окончен!")
+		// 	return
+		// default:
+		// 	fmt.Println("Я почтальон номер:", n, "Взял письмо")
+		// 	time.Sleep(1 * time.Second)
+		// 	fmt.Println("Я почтальон номер:", n, "Донес письмо до почты:", mail)
+
+		// 	transferPoint <- mail
+
+		// 	fmt.Println("Я почтальон номер:", n, "Передал письмо:", mail)
+		// }
 	}
 }
 
