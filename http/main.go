@@ -3,54 +3,36 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"time"
 )
 
-func payHandler(w http.ResponseWriter, r *http.Request) {
-	str := "Новый платеж обработан!"
-	b := []byte(str)
-
-	_, err := w.Write(b)
-	if err != nil {
-		fmt.Println("Во время записи HTTP ответа произошла ошибка:", err.Error())
-	} else {
-		fmt.Println("Я корректно совершил оплату!")
-	}
-}
-
-func cancelHandler(w http.ResponseWriter, r *http.Request) {
-	str := "Оплата отменена!"
-	b := []byte(str)
-
-	_, err := w.Write(b)
-	if err != nil {
-		fmt.Println("Во время записи HTTP ответа произошла ошибка:", err.Error())
-	} else {
-		fmt.Println("Я корректно отменил оплату!")
-	}
-}
-
+// для работы необходимо установить Postman и через него посылать запросы на localhost:9091
 func handler(w http.ResponseWriter, r *http.Request) {
-	str := "Hello, world!"
-	b := []byte(str)
-
-	_, err := w.Write(b)
+	_, err := w.Write([]byte("Hello, world!"))
 	if err != nil {
-		fmt.Println("Во время записи HTTP ответа произошла ошибка:", err.Error())
-	} else {
-		fmt.Println("Я успешно обработал HTTP запрос!")
+		fmt.Println("err:", err.Error())
+		return
+	}
+
+	fmt.Println("Handler отработал успешно")
+}
+
+func handlerSleep(w http.ResponseWriter, r *http.Request) {
+	time.Sleep(5 * time.Second)
+
+	_, err := w.Write([]byte("HTTP response!"))
+	if err != nil {
+		fmt.Println("err:", err.Error())
+		return
 	}
 }
 
 func main() {
-	http.HandleFunc("/default", handler)
-	http.HandleFunc("/pay", payHandler)
-	http.HandleFunc("/cancel", cancelHandler)
+	http.HandleFunc("/", handler)
+	http.HandleFunc("/sleep", handlerSleep)
 
-	fmt.Println("Запускаю HTTP сервер")
-	err := http.ListenAndServe(":9091", nil)
+	err := http.ListenAndServe(":9091", nil) // на каком порту слушаем запросы
 	if err != nil {
-		fmt.Println("Произошла ошибка:", err.Error())
+		fmt.Println("err:", err.Error())
 	}
-
-	fmt.Println("Программа завершила свое выполнение")
 }
