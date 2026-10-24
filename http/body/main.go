@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strconv"
 	"sync"
-	"time"
 )
 
 var mtx = sync.Mutex{}
@@ -16,7 +15,14 @@ var bank = 0     // usd
 func payHandler(w http.ResponseWriter, r *http.Request) {
 	httpRequestBody, err := io.ReadAll(r.Body) // читаем тело запроса
 	if err != nil {
-		fmt.Println("fail to read HTTP body", err)
+		w.WriteHeader(http.StatusInternalServerError)
+
+		msg := "fail to read HTTP body:" + err.Error()
+		fmt.Println(msg)
+		_, err = w.Write([]byte(msg))
+		if err != nil {
+			fmt.Println("fail to write HTTP response:", err)
+		}
 		return
 	}
 
@@ -24,15 +30,27 @@ func payHandler(w http.ResponseWriter, r *http.Request) {
 
 	paymentAmount, err := strconv.Atoi(httpRequestBodyString) // переводим строку в число
 	if err != nil {
-		fmt.Println("fail to convert HTTP body to integer", err)
+		w.WriteHeader(http.StatusBadRequest)
+
+		msg := "fail to convert HTTP body to integer" + err.Error()
+		fmt.Println(msg)
+		_, err = w.Write([]byte(msg))
+		if err != nil {
+			fmt.Println("fail to write HTTP response:", err)
+		}
 		return
 	}
 
 	mtx.Lock()
 	if money-paymentAmount >= 0 {
-		time.Sleep(3 * time.Second)
 		money -= paymentAmount
-		fmt.Println("Оплата прошла успешно:", money)
+
+		msg := "Оплата прошла успешно:" + strconv.Itoa(money)
+		fmt.Println(msg)
+		_, err = w.Write([]byte(msg))
+		if err != nil {
+			fmt.Println("fail to write HTTP response:", err)
+		}
 	} else {
 		fmt.Println("Не хватает денег на проведение оплаты")
 	}
@@ -42,7 +60,12 @@ func payHandler(w http.ResponseWriter, r *http.Request) {
 func saveHandler(w http.ResponseWriter, r *http.Request) {
 	httpRequestBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		fmt.Println("fail to read HTTP request body:", err)
+		msg := "fail to read HTTP request body:" + err.Error()
+		fmt.Println(msg)
+		_, err = w.Write([]byte(msg))
+		if err != nil {
+			fmt.Println("fail to write HTTP response:", err)
+		}
 		return
 	}
 
@@ -62,8 +85,8 @@ func saveHandler(w http.ResponseWriter, r *http.Request) {
 		// положить в копилку
 		bank += saveAmount
 
-		fmt.Println("Новое значение money:", money)
-		fmt.Println("Новое значение bank:", bank)
+		msg := "Новое значение money:" + strconv.Itoa(money) + "\nНовое значение bank:" + strconv.Itoa(bank)
+		fmt.Println(msg)
 	} else {
 		fmt.Println("Не хватает денег на пополнение копилки")
 	}
