@@ -13,6 +13,11 @@ var money = 1000 // usd
 var bank = 0     // usd
 
 func payHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
 	httpRequestBody, err := io.ReadAll(r.Body) // читаем тело запроса
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
