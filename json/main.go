@@ -56,7 +56,11 @@ func payHandler(w http.ResponseWriter, r *http.Request) {
 	var payment Payment
 	if err := json.NewDecoder(r.Body).Decode(&payment); err != nil {
 		fmt.Println("err:", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	if !payment.Validate() {
+		http.Error(w, "Некорректные данные платежа", http.StatusBadRequest)
 		return
 	}
 	payment.Time = time.Now()
@@ -64,16 +68,26 @@ func payHandler(w http.ResponseWriter, r *http.Request) {
 	payment.Println()
 
 	mtx.Lock()
-	if money-payment.USD >= 0 {
-		money -= payment.USD
+	defer mtx.Unlock()
+
+	if payment.USD <= 0 {
+		http.Error(w, "Сумма должна быть положительной", http.StatusBadRequest)
+		return
 	}
+
+	if payment.USD > money {
+		http.Error(w, "Недостаточно средств", http.StatusBadRequest)
+		return
+	}
+
+	money -= payment.USD
 
 	paymentHistory = append(paymentHistory, payment)
 
 	// Делаем JSON ответ клиенту
 	HttpResponse := HttpResponse{
 		Money:          money,
-		PaymentHistory: paymentHistory,
+		PaymentHistory: append([]Payment(nil), paymentHistory...),
 	}
 
 	b, err := json.Marshal(HttpResponse)
@@ -87,8 +101,6 @@ func payHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("err:", err)
 		return
 	}
-
-	mtx.Unlock()
 }
 
 // Запускает HTTP-сервер и регистрирует обработчик платежей.
