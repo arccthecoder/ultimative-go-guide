@@ -40,7 +40,7 @@ func run() error {
 	// добавляем задачу
 	res, err := db.Exec(
 		"INSERT INTO tasks (title) VALUES (?)",
-		"Разораться с SQLite", // при каждом запуске будет создаваться задача в дб (можно менять название)
+		"Разобраться с SQLite", // при каждом запуске будет создаваться задача в дб (можно менять название)
 	)
 	if err != nil {
 		return err
@@ -51,6 +51,27 @@ func run() error {
 		return err
 	}
 	fmt.Println("Создана задача:", id)
+
+	// получаем все задачи
+	rows, err := db.Query(
+		"SELECT id, title, done FROM tasks ORDER BY id",
+	)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var id int64
+		var title string
+		var done bool
+
+		if err := rows.Scan(&id, &title, &done); err != nil {
+			return err
+		}
+
+		fmt.Printf("%d. %s | выполнена: %t\n", id, title, done)
+	}
 
 	// выполняем задачу
 	var taskID int
@@ -78,27 +99,6 @@ func run() error {
 		fmt.Println("Задача с таким номером не найдена")
 	} else {
 		fmt.Println("Задача отмечена выполненной")
-	}
-
-	// получаем все задачи
-	rows, err := db.Query(
-		"SELECT id, title, done FROM tasks ORDER BY id",
-	)
-	if err != nil {
-		return err
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var id int64
-		var title string
-		var done bool
-
-		if err := rows.Scan(&id, &title, &done); err != nil {
-			return err
-		}
-
-		fmt.Printf("%d. %s | выполнена: %t\n", id, title, done)
 	}
 
 	return rows.Err()
