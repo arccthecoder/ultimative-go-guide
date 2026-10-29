@@ -5,8 +5,15 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/jmoiron/sqlx"
 	_ "modernc.org/sqlite" // зависимость, чтобы запускать без CGO (компилятора C)
 )
+
+type Task struct {
+	ID    int    `db:"id"`
+	Title string `db:"title"`
+	Done  bool   `db:"done"`
+}
 
 func main() {
 	if err := run(); err != nil {
@@ -16,7 +23,7 @@ func main() {
 
 func run() error {
 	// создаем файл, если его нет
-	db, err := sql.Open("sqlite", "tasks.db")
+	db, err := sqlx.Connect("sqlite", "tasks.db")
 	if err != nil {
 		return err
 	}
@@ -53,53 +60,62 @@ func run() error {
 	fmt.Println("Создана задача:", id)
 
 	// получаем все задачи
-	rows, err := db.Query(
+	var tasks []Task
+
+	err = db.Select(
+		&tasks,
 		"SELECT id, title, done FROM tasks ORDER BY id",
 	)
 	if err != nil {
 		return err
 	}
-	defer rows.Close()
 
-	for rows.Next() {
-		var id int64
-		var title string
-		var done bool
-
-		if err := rows.Scan(&id, &title, &done); err != nil {
-			return err
-		}
-
-		fmt.Printf("%d. %s | выполнена: %t\n", id, title, done)
+	for _, task := range tasks {
+		fmt.Printf(
+			"%d. %s | выполнена: %t\n",
+			task.ID, task.Title, task.Done,
+		)
 	}
 
-	// выполняем задачу
-	var taskID int
+	// Пользователь выбирает задачу из списка.
+	var taskID int64
 
-	fmt.Println("Введите номер задачи:")
+	fmt.Print("Введите номер задачи для выполнения: ")
 	_, err = fmt.Scanln(&taskID)
 	if err != nil {
 		return err
 	}
 
-	res, err = db.Exec(
+	// Получаем выбранную задачу
+	var task Task
+
+	err = db.Get(
+		&task,
+		"SELECT id, title, done FROM tasks WHERE id = ?",
+		taskID,
+	)
+	if err == sql.ErrNoRows {
+		fmt.Println("Задача с таким номером не найдена")
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+
+	if task.Done {
+		fmt.Println("Задача уже выполнена")
+		return nil
+	}
+
+	_, err = db.Exec(
 		"UPDATE tasks SET done = 1 WHERE id = ?",
 		taskID,
 	)
+
 	if err != nil {
 		return err
 	}
 
-	count, err := res.RowsAffected()
-	if err != nil {
-		return err
-	}
-
-	if count == 0 {
-		fmt.Println("Задача с таким номером не найдена")
-	} else {
-		fmt.Println("Задача отмечена выполненной")
-	}
-
-	return rows.Err()
+	fmt.Println("Задача отмечена выполненной:", task.Title)
+	return nil
 }
