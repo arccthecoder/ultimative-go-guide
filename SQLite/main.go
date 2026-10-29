@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/jmoiron/sqlx"
-	_ "modernc.org/sqlite" // зависимость, чтобы запускать без CGO (компилятора C)
+	"github.com/jmoiron/sqlx" // более удобная для Go
+	_ "modernc.org/sqlite"    // зависимость, чтобы запускать без CGO (компилятора C)
 )
 
 type Task struct {
